@@ -244,3 +244,8 @@ test("diner dashboard", async ({ page }) => {
   await expect(page.getByText("Your pizza kitchen")).toBeVisible();
   await expect(page.getByRole("columnheader", { name: "ID" })).toBeVisible();
 });
+
+test("admin dashboard goes to not found if not admin", async ({ page }) => {
+  await page.goto("/admin-dashboard");
+  await expect(page.getByText("Oops")).toBeVisible();
+});
