@@ -33,6 +33,25 @@ async function basicInit(page: Page) {
       // Handle logout
       loggedInUser = undefined;
       await route.fulfill({ json: { message: "Logged out" } });
+    } else if (method === "POST") {
+      // Handle register
+      const registerReq = route.request().postDataJSON();
+      if (validUsers[registerReq.email]) {
+        await route.fulfill({
+          status: 409,
+          json: { error: "User already exists" },
+        });
+        return;
+      }
+      const user = {
+        id: 4,
+        name: registerReq.name,
+        email: registerReq.email,
+        password: registerReq.password,
+        roles: [{ role: Role.Diner }],
+      };
+      const registerRes = { user, token: "ghijkl" };
+      await route.fulfill({ json: registerRes });
     }
   });
 
@@ -115,6 +134,18 @@ test("login", async ({ page }) => {
   await expect(page.getByRole("link", { name: "KC" })).toBeVisible();
 });
 
+test("register", async ({ page }) => {
+  await basicInit(page);
+
+  await page.getByRole("link", { name: "Register" }).click();
+  await page.getByRole("textbox", { name: "Full name" }).fill("Julia Jones");
+  await page.getByRole("textbox", { name: "Email address" }).fill("e@jwt.com");
+  await page.getByRole("textbox", { name: "Password" }).fill("b");
+  await page.getByRole("button", { name: "Register" }).click();
+
+  await expect(page.getByRole("link", { name: "JJ" })).toBeVisible();
+});
+
 test("logout", async ({ page }) => {
   await basicInit(page);
   await page.getByRole("link", { name: "Login" }).click();
@@ -159,4 +190,16 @@ test("purchase with login", async ({ page }) => {
 
   // Check balance
   await expect(page.getByText("0.008")).toBeVisible();
+});
+
+test("about", async ({ page }) => {
+  await basicInit(page);
+  await page.getByRole("link", { name: "About" }).click();
+  await expect(page.getByText("The secret sauce")).toBeVisible();
+});
+
+test("history", async ({ page }) => {
+  await basicInit(page);
+  await page.getByRole("link", { name: "History" }).click();
+  await expect(page.getByText("Mama Rucci, my my")).toBeVisible();
 });
