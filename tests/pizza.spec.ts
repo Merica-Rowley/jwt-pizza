@@ -12,6 +12,20 @@ async function basicInit(page: Page) {
       password: "a",
       roles: [{ role: Role.Diner }],
     },
+    "f@jwt.com": {
+      id: "4",
+      name: "Oscar George",
+      email: "f@jwt.com",
+      password: "a",
+      roles: [{ role: Role.Franchisee }],
+    },
+    "admin@jwt.com": {
+      id: "5",
+      name: "Alice Smith",
+      email: "admin@jwt.com",
+      password: "a",
+      roles: [{ role: Role.Admin }],
+    },
   };
 
   // Authorize login for the given user
@@ -84,25 +98,33 @@ async function basicInit(page: Page) {
   });
 
   // Standard franchises and stores
-  await page.route(/\/api\/franchise(\?.*)?$/, async (route) => {
-    const franchiseRes = {
-      franchises: [
-        {
-          id: 2,
-          name: "LotaPizza",
-          stores: [
-            { id: 4, name: "Lehi" },
-            { id: 5, name: "Springville" },
-            { id: 6, name: "American Fork" },
-          ],
-        },
-        { id: 3, name: "PizzaCorp", stores: [{ id: 7, name: "Spanish Fork" }] },
-        { id: 4, name: "topSpot", stores: [] },
-      ],
-    };
-    expect(route.request().method()).toBe("GET");
-    await route.fulfill({ json: franchiseRes });
-  });
+  await page.route(
+    /\/api\/franchise(\?.*)?$/,
+    async (route) => {
+      const franchiseRes = {
+        franchises: [
+          {
+            id: 2,
+            name: "LotaPizza",
+            stores: [
+              { id: 4, name: "Lehi" },
+              { id: 5, name: "Springville" },
+              { id: 6, name: "American Fork" },
+            ],
+          },
+          {
+            id: 3,
+            name: "PizzaCorp",
+            stores: [{ id: 7, name: "Spanish Fork" }],
+          },
+          { id: 4, name: "topSpot", stores: [] },
+        ],
+      };
+      expect(route.request().method()).toBe("GET");
+      await route.fulfill({ json: franchiseRes });
+    }
+    // { times: Infinity }
+  );
 
   // Order a pizza.
   await page.route("*/**/api/order", async (route) => {
@@ -248,4 +270,35 @@ test("diner dashboard", async ({ page }) => {
 test("admin dashboard goes to not found if not admin", async ({ page }) => {
   await page.goto("/admin-dashboard");
   await expect(page.getByText("Oops")).toBeVisible();
+});
+
+test("admin dashboard and close", async ({ page }) => {
+  await basicInit(page);
+  await page.getByRole("link", { name: "Login" }).click();
+  await page
+    .getByRole("textbox", { name: "Email address" })
+    .fill("admin@jwt.com");
+  await page.getByRole("textbox", { name: "Password" }).fill("a");
+  await page.getByRole("button", { name: "Login" }).click();
+  await expect(page.getByRole("link", { name: "Admin" })).toBeVisible();
+  await page.getByRole("link", { name: "Admin" }).click();
+  await expect(page.getByText("Mama Ricci's kitchen")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Franchises" })).toBeVisible();
+  await expect(
+    page.getByRole("columnheader", { name: "Franchise", exact: true })
+  ).toBeVisible();
+  await expect(page.getByRole("cell", { name: "LotaPizza" })).toBeVisible();
+  await expect(page.getByRole("cell", { name: "PizzaCorp" })).toBeVisible();
+  await expect(page.getByRole("cell", { name: "topSpot" })).toBeVisible();
+  await page
+    .getByRole("row", { name: "topSpot Close" })
+    .getByRole("button")
+    .click();
+  await page.getByRole("button", { name: "Close" }).click();
+  await expect(page.getByText("Mama Ricci's kitchen")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Franchises" })).toBeVisible();
+  await expect(
+    page.getByRole("columnheader", { name: "Franchise", exact: true })
+  ).toBeVisible();
+  await expect(page.getByRole("cell", { name: "LotaPizza" })).toBeVisible();
 });
