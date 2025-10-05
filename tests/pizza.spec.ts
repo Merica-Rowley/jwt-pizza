@@ -297,6 +297,10 @@ test("purchase with login", async ({ page }) => {
 
   // Check balance
   await expect(page.getByText("0.008")).toBeVisible();
+
+  // Verify JWT
+  await page.getByRole("button", { name: "Verify" }).click();
+  await expect(page.getByText('JWT Pizza - invalid{ "error')).toBeVisible();
 });
 
 test("about", async ({ page }) => {
@@ -338,6 +342,7 @@ test("admin dashboard and close franchise", async ({ page }) => {
   await page.getByRole("button", { name: "Login" }).click();
   await expect(page.getByRole("link", { name: "Admin" })).toBeVisible();
   await page.getByRole("link", { name: "Admin" }).click();
+
   await expect(page.getByText("Mama Ricci's kitchen")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Franchises" })).toBeVisible();
   await expect(
@@ -386,6 +391,28 @@ test("admin dashboard and create franchise", async ({ page }) => {
     .fill("f@jwt.com");
   await page.getByRole("button", { name: "Create" }).click();
 
+  await expect(page.getByRole("heading", { name: "Franchises" })).toBeVisible();
+});
+
+test("admin dashboard and close store", async ({ page }) => {
+  await basicInit(page);
+  await page.getByRole("link", { name: "Login" }).click();
+  await page
+    .getByRole("textbox", { name: "Email address" })
+    .fill("admin@jwt.com");
+  await page.getByRole("textbox", { name: "Password" }).fill("a");
+  await page.getByRole("button", { name: "Login" }).click();
+  await expect(page.getByRole("link", { name: "Admin" })).toBeVisible();
+  await page.getByRole("link", { name: "Admin" }).click();
+
+  await page
+    .getByRole("row", { name: "Springville ₿ Close" })
+    .getByRole("button")
+    .click();
+  await expect(page.getByText("Sorry to see you go")).toBeVisible();
+  await page.getByRole("button", { name: "Close" }).click();
+
+  await expect(page.getByText("Mama Ricci's kitchen")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Franchises" })).toBeVisible();
 });
 
