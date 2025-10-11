@@ -136,9 +136,8 @@ async function basicInit(page: Page) {
     await route.continue();
   });
 
+  // This handles getting the list of users
   await page.route(/.*\/api\/user(\?.*)?$/, async (route) => {
-    console.log("User request caught", route.request().url());
-
     const url = new URL(route.request().url());
     const pageParam = parseInt(url.searchParams.get("page") ?? "0", 10);
     const limit = parseInt(url.searchParams.get("limit") ?? "10", 10);
@@ -171,8 +170,44 @@ async function basicInit(page: Page) {
     });
   });
 
+  // Handle DELETE /api/user/:id
+  await page.route(/.*\/api\/user\/\d+$/, async (route) => {
+    const method = route.request().method();
+    if (method !== "DELETE") {
+      await route.continue();
+      return;
+    }
+
+    const url = new URL(route.request().url());
+    const id = url.pathname.split("/").pop(); // Pull out the ID from the path
+
+    // Find the user by ID
+    const targetEntry = Object.entries(validUsers).find(([, u]) => u.id === id);
+
+    if (!targetEntry) {
+      await route.fulfill({
+        status: 404,
+        json: { error: `User with id ${id} not found` },
+      });
+      return;
+    }
+
+    const [email] = targetEntry;
+
+    // Delete the user from validUsers
+    delete validUsers[email];
+
+    console.log(`Mock deleted user id=${id} (${email})`);
+
+    await route.fulfill({
+      status: 200,
+      headers: { "content-type": "application/json" },
+      json: { message: "User deleted successfully", id },
+    });
+  });
+
+  // This gets a list of the franchises
   await page.route(/.*\/api\/franchise(\?.*)?$/, async (route) => {
-    console.log("Franchise request caught", route.request().url());
     const url = new URL(route.request().url());
     const pageParam = parseInt(url.searchParams.get("page") ?? "0", 10);
     const limit = parseInt(url.searchParams.get("limit") ?? "10", 10);
@@ -218,4 +253,37 @@ test("get user list", async ({ page }) => {
 
   await expect(page.getByText("Alex Marin")).toBeVisible();
   await expect(page.getByText("Bella Cruz")).toBeVisible();
+});
+
+test("remove user", async ({ page }) => {
+  await basicInit(page);
+  await page.goto("/");
+  await page.getByRole("link", { name: "Login" }).click();
+  await page.getByRole("textbox", { name: "Email address" }).fill("a@jwt.com");
+  await page.getByRole("textbox", { name: "Password" }).fill("admin");
+  await page.getByRole("button", { name: "Login" }).click();
+
+  await expect(page.getByLabel("Global")).toContainText("AM");
+  await page.getByRole("link", { name: "Admin" }).click();
+  await expect(page.getByText("Mama Ricci's kitchen")).toBeVisible();
+
+  await page
+    .getByRole("row", { name: "Bella Cruz" })
+    .getByRole("button")
+    .click();
+
+  await expect(page.getByText("Are you sure?")).toBeVisible();
+  await page.getByRole("button", { name: "Cancel" }).click();
+
+  await page.getByText("Mama Ricci's kitchen").click();
+  await expect(page.getByRole("cell", { name: "Bella Cruz" })).toBeVisible();
+
+  await page
+    .getByRole("row", { name: "Chase Nguyen" })
+    .getByRole("button")
+    .click();
+  await page.getByRole("button", { name: "Remove" }).click();
+  await expect(
+    page.getByRole("cell", { name: "Chase Nguyen" })
+  ).not.toBeVisible();
 });

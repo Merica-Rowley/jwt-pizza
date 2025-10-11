@@ -19,10 +19,10 @@ export default function RemoveUser() {
       <div className="text-start py-8 px-4 sm:px-6 lg:px-8">
         <div className="text-neutral-100">
           Are you sure you want to delete{" "}
-          <span className="text-orange-500">{state.franchise.name}'s</span>{" "}
-          account? This will remove all their data and cannot be restored.
+          <span className="text-orange-500">{state.user.name}'s</span> account?
+          This will remove all their data and cannot be restored.
         </div>
-        <Button title="Close" onPress={remove} />
+        <Button title="Remove" onPress={remove} />
         <Button
           title="Cancel"
           onPress={navigateToParentPath}

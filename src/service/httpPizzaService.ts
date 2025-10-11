@@ -151,6 +151,7 @@ class HttpPizzaService implements PizzaService {
   }
 
   async removeUser(user: User): Promise<void> {
+    console.log(user);
     return this.callEndpoint(`/api/user/${user.id}`, "DELETE");
   }
 
