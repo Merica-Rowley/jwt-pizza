@@ -64,7 +64,9 @@ export default function AdminDashboard(props: Props) {
   }
 
   async function removeUser(user: User) {
-    throw new Error("remove user not implemented yet");
+    navigate("/admin-dashboard/remove-user", {
+      state: { user: user },
+    });
   }
 
   async function filterFranchises() {

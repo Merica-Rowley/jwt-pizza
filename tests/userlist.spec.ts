@@ -157,7 +157,6 @@ async function basicInit(page: Page) {
     const start = pageParam * limit; // 0-based
     const paged = filtered.slice(start, start + limit);
 
-    console.log("Fulfilling user response", paged.length, "users");
     await route.fulfill({
       status: 200,
       headers: { "content-type": "application/json" },
@@ -170,7 +169,6 @@ async function basicInit(page: Page) {
         totalPages: Math.ceil(filtered.length / limit),
       },
     });
-    console.log("User response sent");
   });
 
   await page.route(/.*\/api\/franchise(\?.*)?$/, async (route) => {
@@ -195,7 +193,6 @@ async function basicInit(page: Page) {
     const paged = filtered.slice(start, start + limit);
     const more = start + limit < filtered.length;
 
-    console.log("Fulfilling franchise response", paged.length, "franchises");
     await route.fulfill({
       status: 200,
       headers: { "content-type": "application/json" },
@@ -204,65 +201,7 @@ async function basicInit(page: Page) {
         more,
       },
     });
-    console.log("Franchise response sent");
   });
-
-  //   await page.route(/.*\/api\/user(\?.*)?$/, async (route) => {
-  //     console.log("User request caught", route.request().url());
-
-  //     const url = new URL(route.request().url());
-  //     const pageParam = parseInt(url.searchParams.get("page") ?? "0", 10);
-  //     const limit = parseInt(url.searchParams.get("limit") ?? "10", 10);
-  //     const nameFilter = url.searchParams.get("name")?.toLowerCase() ?? "";
-
-  //     const users = Object.values(validUsers);
-  //     const filtered = nameFilter
-  //       ? users.filter((u) => u.name?.toLowerCase().includes(nameFilter))
-  //       : users;
-
-  //     const start = pageParam * limit; // 0-based
-  //     const paged = filtered.slice(start, start + limit);
-
-  //     console.log("Fulfilling user response", paged.length, "users");
-  //     await route.fulfill({
-  //       json: {
-  //         users: paged,
-  //         more: start + limit < filtered.length,
-  //         page: pageParam,
-  //         limit,
-  //         total: filtered.length,
-  //         totalPages: Math.ceil(filtered.length / limit),
-  //       },
-  //     });
-  //     console.log("User response sent");
-  //   });
-
-  //   await page.route(/.*\/api\/franchise(\?.*)?$/, async (route) => {
-  //     const method = route.request().method();
-  //     const url = new URL(route.request().url());
-
-  //     // Parse query parameters
-  //     const pageParam = parseInt(url.searchParams.get("page") ?? "0", 10);
-  //     const limit = parseInt(url.searchParams.get("limit") ?? "10", 10);
-  //     const nameFilter = url.searchParams.get("name")?.toLowerCase() ?? "";
-
-  //     // Apply name filter
-  //     const filtered = nameFilter
-  //       ? dummyFranchises.filter((f) => f.name.toLowerCase().includes(nameFilter))
-  //       : dummyFranchises;
-
-  //     // Pagination
-  //     const start = pageParam * limit;
-  //     const paged = filtered.slice(start, start + limit);
-  //     const more = start + limit < filtered.length;
-
-  //     await route.fulfill({
-  //       json: {
-  //         franchises: paged,
-  //         more,
-  //       },
-  //     });
-  //   });
 }
 
 test("get user list", async ({ page }) => {
