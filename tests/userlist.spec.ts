@@ -40,6 +40,76 @@ async function basicInit(page: Page) {
       password: "diner",
       roles: [{ role: Role.Diner }],
     },
+    "fiona@jwt.com": {
+      id: "6",
+      name: "Fiona Brooks",
+      email: "fiona@jwt.com",
+      password: "diner",
+      roles: [{ role: Role.Diner }],
+    },
+    "george@jwt.com": {
+      id: "7",
+      name: "George Li",
+      email: "george@jwt.com",
+      password: "diner",
+      roles: [{ role: Role.Diner }],
+    },
+    "harper@jwt.com": {
+      id: "8",
+      name: "Harper Singh",
+      email: "harper@jwt.com",
+      password: "diner",
+      roles: [{ role: Role.Diner }],
+    },
+    "isaac@jwt.com": {
+      id: "9",
+      name: "Isaac Turner",
+      email: "isaac@jwt.com",
+      password: "diner",
+      roles: [{ role: Role.Diner }],
+    },
+    "julia@jwt.com": {
+      id: "10",
+      name: "Julia Vega",
+      email: "julia@jwt.com",
+      password: "diner",
+      roles: [{ role: Role.Diner }],
+    },
+    "kai@jwt.com": {
+      id: "11",
+      name: "Kai Morgan",
+      email: "kai@jwt.com",
+      password: "diner",
+      roles: [{ role: Role.Diner }],
+    },
+    "leah@jwt.com": {
+      id: "12",
+      name: "Leah Park",
+      email: "leah@jwt.com",
+      password: "diner",
+      roles: [{ role: Role.Diner }],
+    },
+    "mason@jwt.com": {
+      id: "13",
+      name: "Mason Patel",
+      email: "mason@jwt.com",
+      password: "diner",
+      roles: [{ role: Role.Diner }],
+    },
+    "nora@jwt.com": {
+      id: "14",
+      name: "Nora Diaz",
+      email: "nora@jwt.com",
+      password: "diner",
+      roles: [{ role: Role.Diner }],
+    },
+    "oliver@jwt.com": {
+      id: "15",
+      name: "Oliver Zhao",
+      email: "oliver@jwt.com",
+      password: "admin",
+      roles: [{ role: Role.Admin }],
+    },
   };
   const dummyFranchises = [
     {
@@ -213,27 +283,29 @@ async function basicInit(page: Page) {
     const limit = parseInt(url.searchParams.get("limit") ?? "10", 10);
     const nameFilter = url.searchParams.get("name")?.toLowerCase() ?? "";
 
+    const franchises = Object.values(dummyFranchises);
     let filtered = [];
     if (nameFilter !== "*") {
       filtered = nameFilter
-        ? dummyFranchises.filter((f) =>
-            f.name.toLowerCase().includes(nameFilter)
-          )
-        : dummyFranchises;
+        ? franchises.filter((f) => f.name.toLowerCase().includes(nameFilter))
+        : franchises;
     } else {
-      filtered = dummyFranchises;
+      filtered = franchises;
     }
 
     const start = pageParam * limit;
     const paged = filtered.slice(start, start + limit);
-    const more = start + limit < filtered.length;
 
     await route.fulfill({
       status: 200,
       headers: { "content-type": "application/json" },
       json: {
         franchises: paged,
-        more,
+        more: start + limit < filtered.length,
+        page: pageParam,
+        limit,
+        total: filtered.length,
+        totalPages: Math.ceil(filtered.length / limit),
       },
     });
   });
@@ -285,5 +357,56 @@ test("remove user", async ({ page }) => {
   await page.getByRole("button", { name: "Remove" }).click();
   await expect(
     page.getByRole("cell", { name: "Chase Nguyen" })
+  ).not.toBeVisible();
+});
+
+test("pagination", async ({ page }) => {
+  await basicInit(page);
+  await page.goto("/");
+  await page.getByRole("link", { name: "Login" }).click();
+  await page.getByRole("textbox", { name: "Email address" }).fill("a@jwt.com");
+  await page.getByRole("textbox", { name: "Password" }).fill("admin");
+  await page.getByRole("button", { name: "Login" }).click();
+
+  await expect(page.getByLabel("Global")).toContainText("AM");
+  await page.getByRole("link", { name: "Admin" }).click();
+  await expect(page.getByText("Mama Ricci's kitchen")).toBeVisible();
+
+  await page.getByRole("button", { name: "»" }).first().click();
+  await expect(page.getByRole("cell", { name: "Mason Patel" })).toBeVisible();
+  await page.getByRole("button", { name: "«" }).first().click();
+  await expect(page.getByRole("cell", { name: "Fiona Brooks" })).toBeVisible();
+
+  await page.getByRole("button", { name: "»" }).nth(1).click();
+  await expect(page.getByRole("cell", { name: "DoughNation" })).toBeVisible();
+
+  await page.getByRole("button", { name: "«" }).nth(1).click();
+  await expect(page.getByRole("cell", { name: "CheesyBites" })).toBeVisible();
+});
+
+test("search", async ({ page }) => {
+  await basicInit(page);
+  await page.goto("/");
+  await page.getByRole("link", { name: "Login" }).click();
+  await page.getByRole("textbox", { name: "Email address" }).fill("a@jwt.com");
+  await page.getByRole("textbox", { name: "Password" }).fill("admin");
+  await page.getByRole("button", { name: "Login" }).click();
+
+  await expect(page.getByLabel("Global")).toContainText("AM");
+  await page.getByRole("link", { name: "Admin" }).click();
+  await expect(page.getByText("Mama Ricci's kitchen")).toBeVisible();
+
+  await page.getByRole("textbox", { name: "Search users" }).fill("eli");
+  await page.getByRole("button", { name: "Search" }).click();
+  await page.getByRole("cell", { name: "Eli Romero" }).click();
+  await expect(
+    page.getByRole("cell", { name: "Bella Cruz" })
+  ).not.toBeVisible();
+
+  await page.getByRole("textbox", { name: "Filter franchises" }).fill("cheesy");
+  await page.getByRole("button", { name: "Submit" }).click();
+  await expect(page.getByRole("cell", { name: "CheesyBites" })).toBeVisible();
+  await expect(
+    page.getByRole("cell", { name: "pizzaPocket" })
   ).not.toBeVisible();
 });
