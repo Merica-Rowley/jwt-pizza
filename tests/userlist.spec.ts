@@ -211,11 +211,13 @@ async function basicInit(page: Page) {
     const url = new URL(route.request().url());
     const pageParam = parseInt(url.searchParams.get("page") ?? "0", 10);
     const limit = parseInt(url.searchParams.get("limit") ?? "10", 10);
-    const nameFilter = url.searchParams.get("name")?.toLowerCase() ?? "";
+    let nameFilter = url.searchParams.get("name")?.toLowerCase() ?? "*";
+    nameFilter = nameFilter.replace(/\*/g, "%");
 
     const users = Object.values(validUsers);
     let filtered: User[] = [];
-    if (nameFilter !== "*") {
+    if (nameFilter !== "%") {
+      nameFilter = nameFilter.slice(1, nameFilter.length - 1);
       filtered = nameFilter
         ? users.filter((u) => u.name?.toLowerCase().includes(nameFilter))
         : users;

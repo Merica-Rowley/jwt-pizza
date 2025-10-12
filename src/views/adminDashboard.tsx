@@ -74,7 +74,7 @@ export default function AdminDashboard(props: Props) {
       await pizzaService.getFranchises(
         franchisePage,
         10,
-        `${filterFranchiseRef.current?.value}`
+        `*${filterFranchiseRef.current?.value}*`
       )
     );
   }
@@ -84,7 +84,7 @@ export default function AdminDashboard(props: Props) {
       await pizzaService.getUsers(
         userPage,
         10,
-        `${filterUserRef.current?.value}`
+        `*${filterUserRef.current?.value}*`
       )
     );
   }
