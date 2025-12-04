@@ -58,8 +58,14 @@ export default function App() {
   function isAdmin() {
     return Role.isRole(user, Role.Admin);
   }
+  function isFranchisee() {
+    return Role.isRole(user, Role.Franchisee);
+  }
   function isNotAdmin() {
     return !isAdmin();
+  }
+  function passesConstraints(item: any) {
+    return (item.constraints || []).every((fn: () => any) => fn());
   }
 
   const navItems = [
@@ -96,30 +102,35 @@ export default function App() {
       title: "Create franchise",
       to: "/:subPath?/create-franchise",
       component: <CreateFranchise />,
+      constraints: [isAdmin],
       display: [],
     },
     {
       title: "Close franchise",
       to: "/:subPath?/close-franchise",
       component: <CloseFranchise />,
+      constraints: [isAdmin],
       display: [],
     },
     {
       title: "Create store",
       to: "/:subPath?/create-store",
       component: <CreateStore />,
+      constraints: [isFranchisee],
       display: [],
     },
     {
       title: "Close store",
       to: "/:subPath?/close-store",
       component: <CloseStore />,
+      constraints: [isFranchisee || isAdmin],
       display: [],
     },
     {
       title: "Remove user",
       to: "/:subPath?/remove-user",
       component: <RemoveUser />,
+      constraints: [isAdmin],
       display: [],
     },
     { title: "Payment", to: "/payment", component: <Payment />, display: [] },
@@ -151,7 +162,7 @@ export default function App() {
       display: ["nav"],
     },
     { title: "Docs", to: "/docs/:docType?", component: <Docs />, display: [] },
-    { title: "Opps", to: "*", component: <NotFound />, display: [] },
+    { title: "Oops", to: "*", component: <NotFound />, display: [] },
   ];
 
   return (
@@ -162,7 +173,11 @@ export default function App() {
       <main className="size-full">
         <Routes>
           {navItems.map((item) => (
-            <Route key={item.title} path={item.to} element={item.component} />
+            <Route
+              key={item.title}
+              path={item.to}
+              element={passesConstraints(item) ? item.component : <NotFound />}
+            />
           ))}
         </Routes>
       </main>
