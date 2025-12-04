@@ -128,7 +128,9 @@ export default function AdminDashboard(props: Props) {
                                 {user.email}
                               </td>
                               <td className="text-start px-2 whitespace-nowrap text-l font-mono text-gray-800">
-                                {user.roles?.[0]?.role || ""}
+                                {[
+                                  ...new Set(user.roles?.map((r) => r.role)),
+                                ].join(", ") || ""}
                               </td>
                               <td className="px-6 py-1 whitespace-nowrap text-end text-sm font-medium">
                                 <button
