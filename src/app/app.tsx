@@ -123,7 +123,7 @@ export default function App() {
       title: "Close store",
       to: "/:subPath?/close-store",
       component: <CloseStore />,
-      constraints: [isFranchisee || isAdmin],
+      constraints: [() => isFranchisee() || isAdmin()],
       display: [],
     },
     {
