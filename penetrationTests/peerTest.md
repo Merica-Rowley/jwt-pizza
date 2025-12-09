@@ -206,6 +206,26 @@
 | Images         | ![](images/merica_franchise_debt.png)                                                   |
 | Corrections    | Verify who order request and dont allow different prices to be used                     |
 
+| Item           | Result                                                                 |
+| -------------- | ---------------------------------------------------------------------- |
+| Date           | December 5, 2025                                                       |
+| Target         | pizza.merica.click                                                     |
+| Classification | Security Misconfiguration                                              |
+| Severity       | 0                                                                      |
+| Description    | Blocks using defualt account credentials for a@jwt.com, d@jwt.com, etc |
+| Images         | ![block admin login](images/merica_block_admin.png)                    |
+| Corrections    | N/A                                                                    |
+
+| Item           | Result                                                    |
+| -------------- | --------------------------------------------------------- |
+| Date           | December 5, 2025                                          |
+| Target         | pizza.merica.click                                        |
+| Classification | Broken Access Control                                     |
+| Severity       | 0                                                         |
+| Description    | Blocks deleted a franchise as a regular user              |
+| Images         | ![block delete franchise](images/merica_block_delete.png) |
+| Corrections    | N/A                                                       |
+
 ## Learnings
 
 - **Server-side validation is critical** - Never trust client input. Validate all data server-side (prices, quantities, permissions).
